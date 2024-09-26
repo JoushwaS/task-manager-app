@@ -1,0 +1,25 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Enum for Task Status
+enum TaskStatus {
+  pending
+  completed
+  cancelled
+}
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  title       String
+  description String
+  status      TaskStatus @default(pending) // Use the enum here
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime @updatedAt
+
+}
