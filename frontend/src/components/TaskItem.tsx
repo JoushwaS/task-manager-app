@@ -28,20 +28,36 @@ const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
   return (
     <div className="task-item p-4 bg-gray-100 rounded mb-2 flex justify-between">
       <div>
-        <h3 className="font-bold">{task.title}</h3>
-        <p>{task.description}</p>
-        <span className={`status ${task.status}`}>{task.status}</span>
+        <h3
+          className={`font-bold ${
+            task.status == "completed" && "  line-through"
+          }`}
+        >
+          {task.title}
+        </h3>
+        <p className={` ${task.status == "completed" && "  line-through"}`}>
+          {task.description}
+        </p>
+        <span
+          className={`status ${
+            task.status == "pending" ? "text-amber-400" : "text-green-500"
+          }`}
+        >
+          {task.status}
+        </span>
         <span className="text-gray-500 text-sm">
           {new Date(task.createdAt).toLocaleString()}
         </span>
       </div>
       <div className="actions flex gap-2">
-        <button
-          onClick={handleStatusChange}
-          className="bg-green-500 text-white py-1 px-2 rounded"
-        >
-          Toggle Status
-        </button>
+        {task.status == "pending" && (
+          <button
+            onClick={handleStatusChange}
+            className="bg-green-500 text-white py-1 px-2 rounded"
+          >
+            Toggle Status
+          </button>
+        )}
         <button
           onClick={handleDelete}
           className="bg-red-500 text-white py-1 px-2 rounded"

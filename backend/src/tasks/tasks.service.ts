@@ -20,8 +20,23 @@ export class TasksService {
     });
   }
 
-  async getAllTasks(): Promise<Task[]> {
-    return this.prisma.task.findMany();
+  async getAllTasks(status?: string, order?: 'asc' | 'desc'): Promise<Task[]> {
+    const query: any = {
+      where: {},
+      orderBy: {},
+    };
+
+    // Filter by status if provided
+    if (status) {
+      query.where.status = status; // Assuming 'status' is a field in your Task model
+    }
+
+    // Set orderBy based on the provided order
+    if (order) {
+      query.orderBy.createdAt = order; // Assuming you want to order by 'createdAt'
+    }
+
+    return this.prisma.task.findMany(query);
   }
 
   async getTaskById(id: number): Promise<Task | null> {
