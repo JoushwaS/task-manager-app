@@ -1,36 +1,38 @@
-# Use the official Node.js image as the base image for building the application
-FROM node:18 AS build
+# Step 1: Build the application
+FROM node:16 AS build
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+# Set the working directory
+WORKDIR /app
 
-# Copy package.json and package-lock.json to the working directory
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application code to the working directory
+# Copy the rest of the application code
 COPY . .
 
-# Build the application
+# Build the NestJS application
 RUN npm run build
 
-# Production image
-FROM node:18 AS production
+# Step 2: Serve the application
+FROM node:16
 
-# Set the working directory
-WORKDIR /usr/src/app
+# Set the working directory for the runtime image
+WORKDIR /app
 
-# Copy only the necessary files from the build stage
-COPY --from=build /usr/src/app/dist ./dist
-COPY --from=build /usr/src/app/package*.json ./
+# Copy only the built application from the previous stage
+COPY --from=build /app/dist ./dist
+
+# Copy package.json and package-lock.json for runtime dependencies
+COPY package*.json ./
 
 # Install only production dependencies
 RUN npm install --only=production
 
-# Expose the application port (default: 3000)
+# Expose the port
 EXPOSE 3000
 
 # Start the application
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/main"]
