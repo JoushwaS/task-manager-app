@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TasksService } from './tasks.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 describe('TasksService', () => {
   let tasksService: TasksService;
@@ -37,7 +37,7 @@ describe('TasksService', () => {
 
   describe('createTask', () => {
     it('should create a new task', async () => {
-      const newTask = { title: 'New Task', status: 'pending' };
+      const newTask = { title: 'New Task', description: 'Task description' };
       const result = { id: 1, ...newTask };
       mockPrismaService.task.create.mockReturnValue(result);
 
