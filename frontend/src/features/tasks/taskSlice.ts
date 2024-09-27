@@ -1,4 +1,3 @@
-// src/features/tasks/taskSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface TaskState {
