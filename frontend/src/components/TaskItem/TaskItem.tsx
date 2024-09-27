@@ -1,10 +1,10 @@
-// src/components/TaskItem.tsx
 import React from "react";
+
+import { Task } from "../../types/task";
 import {
   useDeleteTaskMutation,
   useUpdateTaskMutation,
-} from "../features/api/taskApi";
-import { Task } from "../types/task";
+} from "@/features/api/taskApi";
 
 interface TaskItemProps {
   task: Task;

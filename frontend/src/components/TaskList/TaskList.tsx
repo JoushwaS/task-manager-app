@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useGetTasksQuery } from "../features/api/taskApi";
-import TaskItem from "./TaskItem";
-import LoadingSpinner from "./LoadingSpinner"; // Import the LoadingSpinner
+import { useGetTasksQuery } from "../../features/api/taskApi";
+import TaskItem from "../TaskItem/TaskItem";
+import LoadingSpinner from "../common/LoadingSpinner"; // Import the LoadingSpinner
 
 const TaskList: React.FC = () => {
   const [status, setStatus] = useState<string | undefined>(undefined);
@@ -14,7 +14,9 @@ const TaskList: React.FC = () => {
   };
 
   const handleOrderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setOrder(e.target.value === "none" ? undefined : e.target.value);
+    setOrder(
+      e.target.value === "none" ? undefined : (e.target.value as "asc" | "desc")
+    );
   };
 
   return (

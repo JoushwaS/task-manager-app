@@ -1,7 +1,7 @@
 // src/App.tsx
 import React from "react";
-import TaskList from "./components/TaskList";
-import TaskForm from "./components/TaskForm";
+import TaskList from "./components/TaskList/TaskList";
+import TaskForm from "./components/TaskForm/TaskForm";
 
 const App: React.FC = () => {
   return (
