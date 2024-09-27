@@ -1,112 +1,149 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { PrismaService } from '../prisma/prisma.service';
 import { Task } from '@prisma/client';
+import { CreateTaskDto } from './dto/create-task.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
+import { NotFoundException } from '@nestjs/common';
 
 describe('TasksController', () => {
-  let app: INestApplication;
+  let tasksController: TasksController;
   let tasksService: TasksService;
 
-  const mockTask: Task = {
-    id: 1,
-    title: 'Test Task',
-    description: 'Test Description',
-    status: 'pending',
-    createdAt: new Date(),
+  const mockTasksService = {
+    createTask: jest.fn(),
+    getAllTasks: jest.fn(),
+    getTaskById: jest.fn(),
+    updateTask: jest.fn(),
+    deleteTask: jest.fn(),
   };
 
-  const tasksServiceMock = {
-    createTask: jest.fn().mockResolvedValue(mockTask),
-    getAllTasks: jest.fn().mockResolvedValue([mockTask]),
-    getTaskById: jest.fn().mockResolvedValue(mockTask),
-    updateTask: jest
-      .fn()
-      .mockResolvedValue({ ...mockTask, status: 'completed' }),
-    deleteTask: jest.fn().mockResolvedValue(mockTask),
-  };
-
-  beforeAll(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       controllers: [TasksController],
-      providers: [
-        { provide: TasksService, useValue: tasksServiceMock },
-        PrismaService, // This can be a real or mocked service based on your needs
-      ],
+      providers: [{ provide: TasksService, useValue: mockTasksService }],
     }).compile();
 
-    app = moduleRef.createNestApplication();
-    await app.init();
-
-    tasksService = moduleRef.get<TasksService>(TasksService);
+    tasksController = module.get<TasksController>(TasksController);
+    tasksService = module.get<TasksService>(TasksService);
   });
 
-  it('should create a task', async () => {
-    const createTaskDto = {
-      title: 'Test Task',
-      description: 'Test Description',
-    };
+  describe('create', () => {
+    it('should create a task', async () => {
+      const createTaskDto: CreateTaskDto = {
+        title: 'Test Task',
+        description: 'Task description',
+      };
+      const result: Task = {
+        id: 1,
+        ...createTaskDto,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockTasksService.createTask.mockReturnValue(result);
 
-    return request(app.getHttpServer())
-      .post('/tasks')
-      .send(createTaskDto)
-      .expect(201)
-      .expect((res) => {
-        expect(res.body).toMatchObject(createTaskDto);
-        expect(tasksService.createTask).toHaveBeenCalledWith(createTaskDto);
+      expect(await tasksController.create(createTaskDto)).toBe(result);
+      expect(mockTasksService.createTask).toHaveBeenCalledWith(createTaskDto);
+    });
+  });
+
+  describe('findAll', () => {
+    it('should return an array of tasks', async () => {
+      const result: Task[] = [
+        {
+          id: 1,
+          title: 'Test Task',
+          description: 'Task description',
+          status: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
+      mockTasksService.getAllTasks.mockReturnValue(result);
+
+      expect(await tasksController.findAll({})).toBe(result);
+      expect(mockTasksService.getAllTasks).toHaveBeenCalled();
+    });
+  });
+
+  describe('findOne', () => {
+    it('should return a single task', async () => {
+      const result: Task = {
+        id: 1,
+        title: 'Test Task',
+        description: 'Task description',
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockTasksService.getTaskById.mockReturnValue(result);
+
+      expect(await tasksController.findOne('1')).toBe(result);
+      expect(mockTasksService.getTaskById).toHaveBeenCalledWith(1);
+    });
+
+    it('should throw a NotFoundException if task not found', async () => {
+      mockTasksService.getTaskById.mockReturnValue(null);
+
+      await expect(tasksController.findOne('999')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('update', () => {
+    it('should update a task', async () => {
+      const updateTaskDto: UpdateTaskDto = {
+        title: 'Updated Task',
+        description: 'Updated description',
+        status: 'completed',
+      };
+      const result: Task = {
+        id: 1,
+        ...updateTaskDto,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockTasksService.updateTask.mockReturnValue(result);
+
+      expect(await tasksController.update('1', updateTaskDto)).toBe(result);
+      expect(mockTasksService.updateTask).toHaveBeenCalledWith(
+        1,
+        updateTaskDto,
+      );
+    });
+
+    it('should throw a NotFoundException if task not found', async () => {
+      const updateTaskDto: UpdateTaskDto = {
+        title: 'Updated Task',
+        description: 'Updated description',
+        status: 'completed',
+      };
+      mockTasksService.updateTask.mockImplementation(() => {
+        throw new NotFoundException('Task not found');
       });
+
+      await expect(
+        tasksController.update('999', updateTaskDto),
+      ).rejects.toThrow(NotFoundException);
+    });
   });
 
-  it('should retrieve all tasks', async () => {
-    return request(app.getHttpServer())
-      .get('/tasks')
-      .expect(200)
-      .expect((res) => {
-        expect(res.body).toHaveLength(1);
-        expect(res.body[0]).toMatchObject(mockTask);
-        expect(tasksService.getAllTasks).toHaveBeenCalled();
-      });
-  });
+  describe('delete', () => {
+    it('should delete a task', async () => {
+      const result: Task = {
+        id: 1,
+        title: 'Test Task',
+        description: 'Task description',
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      mockTasksService.deleteTask.mockReturnValue(result);
 
-  it('should retrieve a task by ID', async () => {
-    return request(app.getHttpServer())
-      .get(`/tasks/${mockTask.id}`)
-      .expect(200)
-      .expect((res) => {
-        expect(res.body).toMatchObject(mockTask);
-        expect(tasksService.getTaskById).toHaveBeenCalledWith(mockTask.id);
-      });
-  });
-
-  it('should update a task', async () => {
-    const updateTaskDto = { status: 'completed' };
-
-    return request(app.getHttpServer())
-      .patch(`/tasks/${mockTask.id}`)
-      .send(updateTaskDto)
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.status).toBe('completed');
-        expect(tasksService.updateTask).toHaveBeenCalledWith(
-          mockTask.id,
-          updateTaskDto,
-        );
-      });
-  });
-
-  it('should delete a task', async () => {
-    return request(app.getHttpServer())
-      .delete(`/tasks/${mockTask.id}`)
-      .expect(200)
-      .expect((res) => {
-        expect(res.body).toMatchObject(mockTask);
-        expect(tasksService.deleteTask).toHaveBeenCalledWith(mockTask.id);
-      });
-  });
-
-  afterAll(async () => {
-    await app.close();
+      expect(await tasksController.delete('1')).toBe(result);
+      expect(mockTasksService.deleteTask).toHaveBeenCalledWith(1);
+    });
   });
 });
