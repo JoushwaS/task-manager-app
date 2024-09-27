@@ -5,7 +5,7 @@ export interface Task {
   description: string;
   status: "pending" | "completed" | "cancelled";
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 export interface CreateTaskDto {

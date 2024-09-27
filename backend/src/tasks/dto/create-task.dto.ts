@@ -10,5 +10,5 @@ export class CreateTaskDto {
   description: string;
 
   @IsIn(['pending', 'completed'])
-  status: string = 'pending'; // Default value
+  status?: string = 'pending'; // Default value
 }

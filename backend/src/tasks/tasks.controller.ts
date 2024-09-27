@@ -7,11 +7,13 @@ import {
   Param,
   Body,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { Task } from '@prisma/client';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { GetTasksFilterDto } from './dto/get-task-list.dto';
 
 @Controller('tasks')
 export class TasksController {
@@ -25,8 +27,8 @@ export class TasksController {
   }
 
   @Get()
-  async findAll(): Promise<Task[]> {
-    return this.tasksService.getAllTasks();
+  async findAll(@Query() filterDto: GetTasksFilterDto): Promise<Task[]> {
+    return this.tasksService.getAllTasks(filterDto.status, filterDto.order);
   }
 
   @Get(':id')
